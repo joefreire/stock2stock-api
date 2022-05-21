@@ -2,7 +2,8 @@
  
 Stock2Stock api project as requested by Chris Sohn
 
-API project using PHP with Lumen and SQLite I chose Lumen because it is a micro framework that uses the principles of SOLID and with a fast development.
+API project using PHP with Lumen and SQLite.
+I chose Lumen because it is a micro framework that uses the principles of SOLID and with a fast development.
 
 # Requiriments
 - PHP >= 7.3
