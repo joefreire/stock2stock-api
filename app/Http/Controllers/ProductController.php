@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Http\Requests\ProductStoreRequest;
+use DB;
 
 class ProductController extends Controller
 {
@@ -25,7 +26,23 @@ class ProductController extends Controller
     */
     public function showOne($sku)
     {
-        return response()->json(Product::where('sku',$sku)->firstOrFail());
+        $products = DB::table('products')
+        ->leftJoin('products_attributs', 'products.sku', '=', 'products_attributs.sku')
+        ->where('products.sku',$sku)
+        ->get();
+        $attributes = [];
+        
+        foreach ($products as $index => $product) {  
+            if(!isset($attributes[$product->sku])) {
+                $attributes[$product->sku] = [];
+            }            
+            $attributes[$product->sku][] = [$product->attribute=>$product->value];
+        }
+        $result = [];
+        foreach ($attributes as $attribute => $value) {  
+            $result[]=['sku'=> $attribute, 'attributes' => $value];
+        }
+        return response()->json($result);
     }
     /**
     * Create some item.
@@ -33,14 +50,40 @@ class ProductController extends Controller
     * @param  App\Http\Requests\ProductStoreRequest  $request
     * @return json
     */
-    public function create(ProductStoreRequest $request)
+    public function create(Request $request)
     {
+        $products = $this->tasteData(100);
+        $microtime = microtime(true);
         $added = [];
-        foreach($request->all() as $item) {
-            $product = Product::create($item);
+        $sqlProduct = 'INSERT INTO products (`sku`) values ';
+        $sqlAttributes = 'INSERT INTO products_attributs (`sku`,`attribute`,`value`) values ';
+        foreach($products as $item) {
+            foreach ($item['attributes'] as $attribute => $value) {
+                $sqlAttributes .= '( "'.$item['sku'].'","'.$attribute.'","'.$value.'" ),';
+                //$attribute = DB::table('products_attributs')->insert([
+                //    'sku'=>$item['sku'],
+                //    'attribute'=>$attribute,
+                //    'value'=>$value
+                //]);
+            }
+            $sqlProduct .= '( "'.$item['sku'].'" ),';
+            //$product = Product::create($item);
             $added[] = $item;
-        }       
-        return response()->json($added, 201);
+        }
+        $sqlProduct = rtrim($sqlProduct, ',');
+        $sqlAttributes = rtrim($sqlAttributes, ',');
+        DB::unprepared($sqlProduct);
+        DB::unprepared($sqlAttributes);
+        $microtimeEnd = microtime(true);
+        $totalTime = $microtimeEnd - $microtime;
+        return response()->json($totalTime, 201);
+    }
+    public function tasteData($number) {
+        $product = [];
+        for ($i=0; $i < $number ; $i++) { 
+            $product[] = ['sku'=>microtime().'-'.$i , 'attributes' =>['color'=>'blue']];
+        }
+        return $product;
     }
     /**
     * Update some item.

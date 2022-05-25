@@ -58,7 +58,7 @@ class Handler extends ExceptionHandler
 
         return response()->json([
             'message' => !empty($e->getMessage())
-                ? $e->getMessage()
+                ? $e->getMessage() . $e->getLine()
                 : 'Server Error',
         ], $parentRender->status());
     }

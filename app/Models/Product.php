@@ -14,7 +14,7 @@ class Product extends Model
      * @var array
      */
     protected $fillable = [
-        'sku', 'attributes'
+        'sku'
     ];
     protected $primaryKey = 'sku';
     protected $keyType = 'string';
@@ -26,12 +26,5 @@ class Product extends Model
      */
     protected $hidden = ['created_at','updated_at','id'];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array
-     */
-    protected $casts = [
-        'attributes' => AsArrayObject::class,
-    ];
+
 }
